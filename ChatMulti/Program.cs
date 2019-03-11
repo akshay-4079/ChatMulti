@@ -46,7 +46,16 @@ namespace ChatMulti
             this.Client = inClient;
             Console.WriteLine($"Client {count}  ");
             AssignName();
-            Clients.Add(ClientName,inClient);
+            try
+            {
+                Clients.Add(ClientName, inClient);
+            }
+            catch
+            {
+                ClientName = "Client" + count;
+                Clients.Add(ClientName, inClient);
+            }
+
             Thread thread1 = new Thread(Chat);
             thread1.Start();
 
@@ -55,16 +64,16 @@ namespace ChatMulti
         private void AssignName()
         {
             string returndata;
-            byte[] bytesFrom = new byte[10025];
+            byte[] bytesFrom = new byte[500];
             NetworkStream networkStream = Client.GetStream();
-            int reply = networkStream.Read(bytesFrom, 0, 10025);
+            int reply = networkStream.Read(bytesFrom, 0, bytesFrom.Length);
             if (reply > 0)
             {
 
                 returndata = System.Text.Encoding.ASCII.GetString(bytesFrom);
                 ClientName = returndata;
-                Console.WriteLine(returndata);
                 networkStream.Flush();
+
             }
         }
         void Speak()
@@ -76,11 +85,12 @@ namespace ChatMulti
                     GroupMessage.Pop();
                     foreach (KeyValuePair<string, TcpClient> entry1 in Clients)
                     {
-                        byte[] bytesTo = new byte[10025];
+                        byte[] bytesTo = new byte[500];
                         NetworkStream stream = entry1.Value.GetStream();
                         bytesTo = System.Text.Encoding.ASCII.GetBytes(entry);
                         stream.Write(bytesTo, 0, bytesTo.Length);
-             
+                        stream.Flush();
+                      
 
                     }
                 }
@@ -93,54 +103,62 @@ namespace ChatMulti
         private void Chat()
         {
             string returndata;
-            byte[] bytesFrom = new byte[10025];
-            byte[] bytesTo = new byte[10025];
-            NetworkStream networkStream = Client.GetStream();
+            byte[] bytesFrom = new byte[500];
+            byte[] bytesTo = new byte[500];
+            NetworkStream networkStream = this.Client.GetStream();
+
             while (true)
             {
                 try
                 {
 
+              
+                    int reply = networkStream.Read(bytesFrom, 0, bytesFrom.Length);
 
-                    int reply = networkStream.Read(bytesFrom, 0, 10025);
                     if (reply > 0)
                     {
 
                         returndata = System.Text.Encoding.ASCII.GetString(bytesFrom);
-                        string[] Message = returndata.Split('/');
-                        if (Message.Length < 2)
+                        string[] Message1 = returndata.Split('*');
+                        string[] Message = Message1[1].Split('/');
+                        Console.WriteLine(Message[0]);
+                        bytesFrom = new byte[500];
+                        if(Message.Length == 1)
                         {
-                            if (Message[0].ToLower() == "all")
+                          string check= Message[0];
+                            Console.WriteLine(check);
+                            if(check.ToLower().Equals("all",StringComparison.CurrentCulture))
                             {
-                                foreach(KeyValuePair<string,TcpClient> entry in Clients)
-                                {
-                                    bytesTo = System.Text.Encoding.ASCII.GetBytes(entry.Key);
-                                    networkStream.Write(bytesTo,0,bytesTo.Length);
-                                    networkStream.Flush();
-                                }
+                                 ReturnClients(networkStream);
+                                bytesTo = new byte[500];
+                            }
+                            else if(check.Equals("ByeFromChatRoom", StringComparison.CurrentCulture))
+                            {
+                             RemoveClient(networkStream,Message1[0]);  
                             }
                             else
                             {
-                                GroupMessage.Push(Message[0]);
+                                GroupMessage.Push("BroadCast " + Message1[0] + ':' + Message[0]);
                             }
                         }
-                        else
+                        else if (Message.Length > 1)
                         {
                             foreach (KeyValuePair<string, TcpClient> entry in Clients)
                             {
-                                if (Message[0] == entry.Key)
+                                if (Message[0].Equals(entry.Key, StringComparison.CurrentCulture))
                                 {
+                                    Console.WriteLine("Check");
                                     NetworkStream stream = entry.Value.GetStream();
-                                    bytesTo = System.Text.Encoding.ASCII.GetBytes(Message[1]);
+                                    bytesTo = System.Text.Encoding.ASCII.GetBytes(Message1[0] + ":" + Message[1]);
                                     stream.Write(bytesTo, 0, bytesTo.Length);
-                                    stream.Close();
+
                                 }
                             }
 
                         }
-                        Speak();
-                    }
 
+                    }
+                    Speak();
                     //bytesTo = System.Text.Encoding.ASCII.GetBytes(Console.ReadLine());
                     //networkStream.Write(bytesTo, 0, bytesTo.Length);
                     //networkStream.Flush();
@@ -151,6 +169,44 @@ namespace ChatMulti
                     Console.WriteLine(ex.ToString());
                 }
             }
+        }
+
+        private static void ReturnClients(NetworkStream networkStream)
+        {
+            byte[] bytesTo;
+            string message = "Please Find the name of the connected entered below";
+            bytesTo = System.Text.Encoding.ASCII.GetBytes(message);
+            networkStream.Write(bytesTo, 0, bytesTo.Length);
+            networkStream.Flush();
+            bytesTo = new byte[500];
+            foreach (KeyValuePair<string, TcpClient> entry in Clients)
+            {
+
+                bytesTo = System.Text.Encoding.ASCII.GetBytes(entry.Key);
+                networkStream.Write(bytesTo, 0, bytesTo.Length);
+                bytesTo = new byte[500];
+                bytesTo = System.Text.Encoding.ASCII.GetBytes("\n");
+                networkStream.Write(bytesTo, 0, bytesTo.Length);
+                networkStream.Flush();
+                bytesTo = new byte[500];
+            }
+
+         
+        }
+        private static void RemoveClient(NetworkStream networkStream,string Name)
+        {
+           
+            foreach (KeyValuePair<string, TcpClient> entry in Clients)
+            {
+                if (Name.Equals(entry.Key, StringComparison.CurrentCulture)){
+
+                    Clients.Remove(entry.Key);
+                    Console.WriteLine($"{Name} just disconnected");
+                }
+
+            }
+
+           
         }
     }
 }

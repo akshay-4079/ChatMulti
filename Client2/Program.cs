@@ -20,21 +20,60 @@ namespace ChatClient
             NetworkStream serverstream = clientSocket.GetStream();
             byte[] bytesTo = new byte[1000];
             byte[] inStream = new byte[1000];
-
+            Console.WriteLine("Type help for details");
             Console.WriteLine("Enter Your Name");
             string Name = Console.ReadLine();
             bytesTo = System.Text.Encoding.ASCII.GetBytes(Name);
             serverstream.Write(bytesTo, 0, bytesTo.Length);
-            while (connect)
+            Thread ct1 = new Thread(Listen);
+            Thread ct2 = new Thread(Speak);
+            ct1.Start();
+            ct2.Start();
+            void Speak()
             {
-                Console.WriteLine("Message personally by typing the persons Name followed by the message, For a brodcast message dont add anything");
-                serverstream.Read(inStream, 0, 1000);
-                string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                Console.WriteLine(returndata);
-                Console.WriteLine("Enter A Message");
-                bytesTo = System.Text.Encoding.ASCII.GetBytes(Console.ReadLine());
-                serverstream.Write(bytesTo, 0, bytesTo.Length);
-                serverstream.Flush();
+                while (true)
+                {
+
+                    Console.WriteLine("Enter A Message");
+                    string Response = Console.ReadLine();
+                    if (Response.ToLower() == "help")
+                    {
+                        string Response1 = "Type all to see the list of people connected to the room|| Any message sent as such will be broadcast|| For private messaging send the name with / after,Example to talk to Akshay you would key in Akshay/Your Mesaage|| If you key in an already used name you will be assigned a generic name";
+                        Console.WriteLine(Response1);
+                        Console.WriteLine("Enter Message");
+                        Response = Console.ReadLine();
+                    }
+                   else if (Response.ToLower() == "exit")
+                    {
+                        Console.WriteLine("Press Yes To Confirm");
+                        if (Console.ReadLine().ToLower()=="y")
+                        {
+                            Response ="ByeFromChatRoom";
+                            bytesTo = System.Text.Encoding.ASCII.GetBytes(Name + '*' + Response);
+                            serverstream.Write(bytesTo, 0, bytesTo.Length);
+                 
+                        }
+                        else
+                        {
+                            Console.WriteLine("Enter Message");
+                            Response = Console.ReadLine();
+                        }
+                    }
+                    bytesTo = System.Text.Encoding.ASCII.GetBytes(Name+'*'+Response);
+                    serverstream.Write(bytesTo, 0, bytesTo.Length);
+                }
+            }
+            void Listen()
+            {
+
+                while (connect)
+                {
+
+                    serverstream.Read(inStream, 0, 1000);
+                    string returndata = System.Text.Encoding.ASCII.GetString(inStream);
+                    Console.WriteLine(returndata);
+
+                }
             }
         }
 
@@ -45,7 +84,6 @@ namespace ChatClient
         public static void Main(string[] args)
         {
             ChatClient client = new ChatClient();
-            ChatClient client2 = new ChatClient();
             client.MakeCLient();
         }
     }
