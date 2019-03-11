@@ -173,22 +173,23 @@ namespace ChatMulti
 
         private static void ReturnClients(NetworkStream networkStream)
         {
-            byte[] bytesTo;
-            string message = "Please Find the name of the connected entered below";
-            bytesTo = System.Text.Encoding.ASCII.GetBytes(message);
-            networkStream.Write(bytesTo, 0, bytesTo.Length);
             networkStream.Flush();
-            bytesTo = new byte[500];
-            foreach (KeyValuePair<string, TcpClient> entry in Clients)
+            byte[] RetClient=new byte[500];
+            string message = "Please Find the name of the connected entered below";
+            RetClient = System.Text.Encoding.ASCII.GetBytes(message);
+            networkStream.Write(RetClient, 0, RetClient.Length);
+            int count = 0;
+            foreach (var entry in Clients.Keys)
             {
-
-                bytesTo = System.Text.Encoding.ASCII.GetBytes(entry.Key);
-                networkStream.Write(bytesTo, 0, bytesTo.Length);
-                bytesTo = new byte[500];
-                bytesTo = System.Text.Encoding.ASCII.GetBytes("\n");
-                networkStream.Write(bytesTo, 0, bytesTo.Length);
+                ++count;
+                Console.WriteLine(entry);
+                RetClient = new byte[500];
+                if (count == Clients.Count) { break; }
+                RetClient = System.Text.Encoding.ASCII.GetBytes(entry+'/');
+                networkStream.Write(RetClient, 0, RetClient.Length);
+                RetClient = new byte[500];
                 networkStream.Flush();
-                bytesTo = new byte[500];
+                RetClient = new byte[500];
             }
 
          
