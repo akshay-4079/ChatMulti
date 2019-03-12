@@ -2,7 +2,7 @@
 
 This is a simple application that I built to study sockets programming. It is a multi-threaded application that supports multiple clients and also supports broadcast and private messages
 
-Be sure to change the IP and port to your preference before starting.
+Be sure to change the IP and port in both ChatMulti which is the server and Client2 which is the Client.
 
 # Help
 
