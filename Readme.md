@@ -4,7 +4,7 @@ This is a simple application that I built to study sockets programming. It is a 
 
 Be sure to change the IP and port to your preference before starting.
 
-# Readme
+# Help
 
 Type Help in the Client Window to get a rundown on using the app.
 
