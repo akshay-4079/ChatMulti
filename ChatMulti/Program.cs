@@ -98,7 +98,7 @@ namespace ChatMulti
             }
             catch
             {
-                Console.WriteLine("Error Occured");
+                Console.WriteLine("");
             }
         }
         private void Chat()
