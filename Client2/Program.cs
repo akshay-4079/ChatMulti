@@ -29,9 +29,11 @@ namespace ChatClient
             Thread ct2 = new Thread(Speak);
             ct1.Start();
             ct2.Start();
+        
+        
             void Speak()
             {
-                while (true)
+                while (connect==true)
                 {
 
                     Console.WriteLine("Enter A Message");
@@ -51,7 +53,10 @@ namespace ChatClient
                             Response ="ByeFromChatRoom";
                             bytesTo = System.Text.Encoding.ASCII.GetBytes(Name + '*' + Response);
                             serverstream.Write(bytesTo, 0, bytesTo.Length);
-                 
+                            connect = false;
+                            serverstream.Close();
+                            clientSocket.Close();
+                            Console.WriteLine("GoodBye");
                         }
                         else
                         {
@@ -62,11 +67,12 @@ namespace ChatClient
                     bytesTo = System.Text.Encoding.ASCII.GetBytes(Name+'*'+Response);
                     serverstream.Write(bytesTo, 0, bytesTo.Length);
                 }
+               
             }
             void Listen()
             {
 
-                while (connect)
+                while (connect==true)
                 {
 
                     serverstream.Read(inStream, 0, 1000);
@@ -74,7 +80,9 @@ namespace ChatClient
                     Console.WriteLine(returndata);
 
                 }
+
             }
+
         }
 
 

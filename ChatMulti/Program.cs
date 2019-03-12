@@ -66,6 +66,7 @@ namespace ChatMulti
             string returndata;
             byte[] bytesFrom = new byte[500];
             NetworkStream networkStream = Client.GetStream();
+
             int reply = networkStream.Read(bytesFrom, 0, bytesFrom.Length);
             if (reply > 0)
             {
